@@ -16,7 +16,7 @@ jobs:
 
       - name: Setup SourcePawn Compiler
         id: setup-sp
-        uses: rumblefrog/setup-sp@v1.2.4
+        uses: rumblefrog/setup-sp@master
         with:
           version: "1.12.x"
 
@@ -25,24 +25,24 @@ jobs:
         run: |
           mkdir -p build
           spcomp \
-            "scripting/gokz-rts.sp" \
+            "scripting/fkz-api.sp" \
             -i "sm-ext-json/scripting/include" \
             -i "sm-ext-websocket/scripting/include" \
             -i "gokz/addons/sourcemod/scripting/include" \
             -i "$includePath" \
-            -o "build/gokz-rts.smx"
+            -o "build/fkz-api.smx"
 
       - name: Stage release files
         run: |
           mkdir -p staging/addons/sourcemod/plugins
           mkdir -p staging/addons/sourcemod/configs
-          cp build/gokz-rts.smx staging/addons/sourcemod/plugins/
-          cp configs/gokz-rts.cfg staging/addons/sourcemod/configs/
+          cp build/fkz-api.smx staging/addons/sourcemod/plugins/
+          cp configs/fkz-api.cfg staging/addons/sourcemod/configs/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: gokz-realtime-status
+          name: fkz-api
           path: staging/*
 
   release:
@@ -55,14 +55,14 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v7
         with:
-          name: gokz-realtime-status
+          name: fkz-api
           path: release
 
       - name: Create archive
-        run: cd release && tar -czf ../gokz-realtime-status.tar.gz .
+        run: cd release && tar -czf ../fkz-api.tar.gz .
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: gokz-realtime-status.tar.gz
+          files: fkz-api.tar.gz

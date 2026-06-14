@@ -1,7 +1,8 @@
 /**
- * GOKZ Realtime Status
+ * FKZ API
  *
- * Reports server status, player info, and GOKZ data to an API endpoint.
+ * Wrapper plugin for FKZ API natives/forwards
+ * Status updater with GOKZ integration, sends live player and server data to FKZ API.
  *
  * Dependencies (required):
  *   - sm-ext-json (ProjectSky/sm-ext-json)
@@ -11,7 +12,7 @@
  * Dependencies (optional):
  *   - SteamWorks (for VAC status detection)
  *
- * Configuration: addons/sourcemod/configs/gokz-rts.cfg
+ * Configuration: addons/sourcemod/configs/fkz-api.cfg
  */
 
 #include <sourcemod>
@@ -31,14 +32,12 @@
 
 public Plugin myinfo =
 {
-	name = "GOKZ Realtime Status",
+	name = "FKZ-API",
 	author = "jvnipers",
-	description = "Reports server/player/GOKZ data to API via HTTP",
+	description = "Exposes FKZ API fetch/send natives and tracks realtime player/server data.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/FemboyKZ/gokz-realtime-status"
+	url = "https://github.com/FemboyKZ/sm-fkz-api"
 };
-
-// Config
 
 static char g_apiUrl[256];
 static char g_apiKey[256];
@@ -47,8 +46,6 @@ static char g_tlsCAFile[PLATFORM_MAX_PATH];
 static int g_serverPort;
 static float g_interval = 10.0;
 static int g_failCount;
-
-// Per-player GOKZ tracking
 
 enum struct GokzData
 {
@@ -63,13 +60,10 @@ enum struct GokzData
 static GokzData g_gokzData[MAXPLAYERS + 1];
 static float g_connectTime[MAXPLAYERS + 1];
 
-// State
-
 static Handle g_reportTimer = INVALID_HANDLE;
 static char g_osName[16];
 static int g_successCount;
 
-// Cached static server info (refreshed once per map)
 static char g_cachedHostname[256];
 static char g_cachedVersion[256];
 static char g_cachedMMVersion[64];
@@ -78,22 +72,19 @@ static bool g_cachedSecure;
 static bool g_cachedSecureAvailable;
 static JSONArray g_cachedPlugins = null;
 
-//  Lifecycle
-
 public void OnPluginStart()
 {
 	LoadConfig();
 
 	if (g_apiUrl[0] == '\0')
 	{
-		LogMessage("[gokz-rts] No api_url configured, reporting disabled");
+		LogMessage("[FKZ] No api_url configured, reporting disabled");
 		return;
 	}
 
-	LogMessage("[gokz-rts] v%s loaded - reporting to %s every %.0fs (key=%s)",
+	LogMessage("[FKZ] v%s loaded - reporting to %s every %.0fs (key=%s)",
 		PLUGIN_VERSION, g_apiUrl, g_interval, g_apiKey[0] != '\0' ? "set" : "NOT SET");
 
-	// Late load: estimate connect time for existing players
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientConnected(i) && !IsFakeClient(i))
@@ -115,7 +106,6 @@ public void OnMapStart()
 	StopReportTimer();
 	g_reportTimer = CreateTimer(g_interval, Timer_Report, _, TIMER_REPEAT);
 
-	// Initial report after short delay to let server stabilize
 	CreateTimer(2.0, Timer_InitialReport);
 }
 
@@ -132,7 +122,6 @@ public void OnClientDisconnect(int client)
 {
 	if (!IsFakeClient(client))
 	{
-		// Check if this was the last human player (server will hibernate)
 		int humans = 0;
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -154,11 +143,9 @@ public int SteamWorks_SteamServersConnected()
 {
 	g_cachedSecureAvailable = true;
 	g_cachedSecure = SteamWorks_IsVACEnabled();
-	LogMessage("[gokz-rts] Steam connected, VAC status: %s", g_cachedSecure ? "secure" : "insecure");
+	LogMessage("[FKZ] Steam connected, VAC status: %s", g_cachedSecure ? "secure" : "insecure");
 	return 0;
 }
-
-//  GOKZ Forwards
 
 public void GOKZ_OnTimerStart_Post(int client, int course)
 {
@@ -191,8 +178,6 @@ public void GOKZ_OnOptionChanged(int client, const char[] option, any newValue)
 		UpdateGokzData(client);
 }
 
-//  Timer Callbacks
-
 public Action Timer_Report(Handle timer, any data)
 {
 	SendReport();
@@ -205,14 +190,11 @@ public Action Timer_InitialReport(Handle timer, any data)
 	return Plugin_Stop;
 }
 
-//  Core: HTTP Reporting
-
 void SendHibernate()
 {
 	if (g_apiUrl[0] == '\0')
 		return;
 
-	// Build minimal payload signaling the server is about to hibernate
 	JSONObject payload = new JSONObject();
 
 	char ip[64];
@@ -251,24 +233,23 @@ void SendHibernate()
 
 	if (!sent)
 	{
-		LogError("[gokz-rts] Failed to send hibernate signal to %s", url);
+		LogError("[FKZ] Failed to send hibernate signal to %s", url);
 		delete req;
 	}
 	else
 	{
-		LogMessage("[gokz-rts] Sent hibernate signal (server empty)");
+		LogMessage("[FKZ] Sent hibernate signal (server empty)");
 	}
 }
 
 void OnHibernateResponse(HttpRequest http, const char[] body, int statusCode, int bodySize, any value)
 {
 	if (statusCode != 200)
-		LogError("[gokz-rts] Hibernate signal returned HTTP %d: %.256s", statusCode, body);
+		LogError("[FKZ] Hibernate signal returned HTTP %d: %.256s", statusCode, body);
 }
 
 void SendReport()
 {
-	// Refresh GOKZ data for all players before building payload
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientInGame(i) && !IsFakeClient(i))
@@ -280,7 +261,7 @@ void SendReport()
 	HttpRequest req = new HttpRequest(g_apiUrl);
 	req.Timeout = 10000;
 	req.KeepAlive = true;
-	req.FollowRedirect = false; // POST→GET downgrade on 301/302 redirects breaks our request
+	req.FollowRedirect = false;
 
 	if (g_tlsCAFile[0] != '\0')
 		req.SetTLSCAFile(g_tlsCAFile);
@@ -293,7 +274,7 @@ void SendReport()
 
 	if (!sent)
 	{
-		LogError("[gokz-rts] Failed to dispatch request to %s", g_apiUrl);
+		LogError("[FKZ] Failed to dispatch request to %s", g_apiUrl);
 		delete req;
 	}
 }
@@ -303,39 +284,35 @@ void OnHttpResponse(HttpRequest http, const char[] body, int statusCode, int bod
 	if (statusCode == 200)
 	{
 		if (g_failCount > 0)
-			LogMessage("[gokz-rts] POST recovered after %d failures", g_failCount);
+			LogMessage("[FKZ] POST recovered after %d failures", g_failCount);
 		g_failCount = 0;
 		g_successCount++;
 		if (g_successCount == 1 || g_successCount % 30 == 0)
-			LogMessage("[gokz-rts] POST OK (count=%d)", g_successCount);
+			LogMessage("[FKZ] POST OK (count=%d)", g_successCount);
 	}
 	else if (statusCode == 0)
 	{
 		g_failCount++;
-		LogError("[gokz-rts] POST transport error to %s: %s (fail #%d)", g_apiUrl, body, g_failCount);
-		LogError("[gokz-rts] Possible causes: DNS failure, connection refused, TLS/certificate error, or network unreachable");
+		LogError("[FKZ] POST transport error to %s: %s (fail #%d)", g_apiUrl, body, g_failCount);
+		LogError("[FKZ] Possible causes: DNS failure, connection refused, TLS/certificate error, or network unreachable");
 		if (g_tlsCAFile[0] == '\0' && strncmp(g_apiUrl, "https", 5) == 0)
-			LogError("[gokz-rts] HTTPS in use but no tls_ca_file set - Docker containers may lack system CA certs. Set tls_ca_file in config.");
+			LogError("[FKZ] HTTPS in use but no tls_ca_file set - Docker containers may lack system CA certs. Set tls_ca_file in config.");
 	}
 	else
 	{
 		g_failCount++;
-		LogError("[gokz-rts] POST HTTP %d from %s: %.512s (fail #%d)", statusCode, g_apiUrl, body, g_failCount);
+		LogError("[FKZ] POST HTTP %d from %s: %.512s (fail #%d)", statusCode, g_apiUrl, body, g_failCount);
 		if (statusCode >= 301 && statusCode <= 308)
-			LogError("[gokz-rts] Redirect detected - update api_url in config to the final URL (e.g. https:// instead of http://)");
+			LogError("[FKZ] Redirect detected - update api_url in config to the final URL (e.g. https:// instead of http://)");
 	}
 
 	// Handle is freed by the extension after this callback returns.
 }
 
-//  Static Info Cache
-
 void CacheStaticServerInfo()
 {
-	// OS detection (done here so status command is available)
 	DetectOS();
 
-	// Hostname
 	ConVar cvHostname = FindConVar("hostname");
 	if (cvHostname != null)
 		cvHostname.GetString(g_cachedHostname, sizeof(g_cachedHostname));
@@ -350,7 +327,6 @@ void CacheStaticServerInfo()
 	char versionBuf[512];
 	ServerCommandEx(versionBuf, sizeof(versionBuf), "version");
 
-	// Extract "Exe version X.X.X.X" line
 	int pos = StrContains(versionBuf, "Exe version ");
 	if (pos != -1)
 	{
@@ -372,32 +348,25 @@ void CacheStaticServerInfo()
 		TrimString(g_cachedVersion);
 	}
 
-	// Tickrate
 	g_cachedTickrate = RoundToNearest(1.0 / GetTickInterval());
 
-	// Secure (VAC status via SteamWorks)
 	// Note: on first map load after server start, Steam may not be connected yet.
-	// SteamWorks_SteamServersConnected forward handles the re-check.
 	g_cachedSecureAvailable = (GetFeatureStatus(FeatureType_Native, "SteamWorks_IsVACEnabled") == FeatureStatus_Available);
 	if (g_cachedSecureAvailable)
 		g_cachedSecure = SteamWorks_IsVACEnabled();
 
-	// MetaMod version
 	ConVar cvMM = FindConVar("metamod_version");
 	if (cvMM != null)
 		cvMM.GetString(g_cachedMMVersion, sizeof(g_cachedMMVersion));
 	else
 		g_cachedMMVersion[0] = '\0';
 
-	// Plugins list
 	if (g_cachedPlugins != null)
 		delete g_cachedPlugins;
 	g_cachedPlugins = BuildPluginsArray();
 
-	LogMessage("[gokz-rts] Cached static info: hostname=%s, version=%s, tickrate=%d", g_cachedHostname, g_cachedVersion, g_cachedTickrate);
+	LogMessage("[FKZ] Cached static info: hostname=%s, version=%s, tickrate=%d", g_cachedHostname, g_cachedVersion, g_cachedTickrate);
 }
-
-//  Payload Building
 
 JSONObject BuildPayload()
 {
@@ -418,7 +387,6 @@ JSONObject BuildServerObject()
 {
 	JSONObject server = new JSONObject();
 
-	// Static info (cached once per map)
 	server.SetString("hostname", g_cachedHostname);
 	server.SetString("os", g_osName);
 	server.SetString("version", g_cachedVersion);
@@ -440,7 +408,6 @@ JSONObject BuildServerObject()
 		server.Set("plugins", g_cachedPlugins);
 	}
 
-	// IP (config override or hostip ConVar)
 	char ip[64];
 	if (g_serverIp[0] != '\0')
 	{
@@ -457,11 +424,9 @@ JSONObject BuildServerObject()
 	}
 	server.SetString("ip", ip);
 
-	// Port (config override or hostport ConVar)
 	int port = g_serverPort > 0 ? g_serverPort : FindConVar("hostport").IntValue;
 	server.SetInt("port", port);
 
-	// Dynamic info (changes each tick)
 	char map[256];
 	GetCurrentMap(map, sizeof(map));
 	server.SetString("map", map);
@@ -520,7 +485,6 @@ JSONArray BuildPlayersArray()
 		bool inGame = IsClientInGame(i);
 		player.SetBool("in_game", inGame);
 
-		// GOKZ data
 		if (inGame && g_gokzData[i].mode[0] != '\0')
 		{
 			JSONObject gokz = new JSONObject();
@@ -578,8 +542,6 @@ JSONArray BuildPluginsArray()
 	return plugins;
 }
 
-//  GOKZ Data
-
 void UpdateGokzData(int client)
 {
 	if (!IsClientInGame(client) || IsFakeClient(client))
@@ -604,17 +566,15 @@ void ResetGokzData(int client)
 	g_gokzData[client].teleports = 0;
 }
 
-//  Config
-
 void LoadConfig()
 {
 	char cfgPath[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, cfgPath, sizeof(cfgPath), "configs/gokz-rts.cfg");
+	BuildPath(Path_SM, cfgPath, sizeof(cfgPath), "configs/fkz-api.cfg");
 
 	File file = OpenFile(cfgPath, "r");
 	if (file == null)
 	{
-		LogError("[gokz-rts] Config not found: %s", cfgPath);
+		LogError("[FKZ] Config not found: %s", cfgPath);
 		return;
 	}
 
@@ -623,7 +583,6 @@ void LoadConfig()
 	{
 		TrimString(line);
 
-		// Skip comments and empty lines
 		if (line[0] == '/' || line[0] == '#' || line[0] == '\0')
 			continue;
 
@@ -655,12 +614,9 @@ void LoadConfig()
 bool ParseConfigLine(const char[] line, char[] key, int keyLen, char[] value, int valueLen)
 {
 	int pos = 0;
-
-	// Skip leading whitespace
 	while (line[pos] == ' ' || line[pos] == '\t')
 		pos++;
 
-	// Read key (optionally quoted)
 	if (line[pos] == '"')
 	{
 		pos++;
@@ -685,11 +641,9 @@ bool ParseConfigLine(const char[] line, char[] key, int keyLen, char[] value, in
 		strcopy(key, len + 1, line[start]);
 	}
 
-	// Skip whitespace between key and value
 	while (line[pos] == ' ' || line[pos] == '\t')
 		pos++;
 
-	// Read value (must be quoted)
 	if (line[pos] == '"')
 	{
 		pos++;
@@ -706,20 +660,14 @@ bool ParseConfigLine(const char[] line, char[] key, int keyLen, char[] value, in
 	return false;
 }
 
-//  Helpers
-
 void DetectOS()
 {
-	// Parse OS from "status" command output which contains a line like:
-	//   os      :  Linux
-	//   os      :  Windows
 	char statusBuf[2048];
 	ServerCommandEx(statusBuf, sizeof(statusBuf), "status");
 
 	int pos = StrContains(statusBuf, "\nos", false);
 	if (pos != -1)
 	{
-		// Advance past the colon
 		int colon = StrContains(statusBuf[pos], ":");
 		if (colon != -1)
 		{
@@ -735,7 +683,7 @@ void DetectOS()
 		}
 	}
 
-	// Fallback: assume linux (all our servers run Linux)
+	// Fallback: assume linux
 	strcopy(g_osName, sizeof(g_osName), "linux");
 }
 
