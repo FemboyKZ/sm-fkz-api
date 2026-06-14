@@ -16,4 +16,4 @@ This is requires you to have an [FKZ API](https://github.com/FemboyKZ/api) insta
 ## Natives
 
 Other plugins can read the FKZ API through the natives exposed by this plugin.
-Include [`include/fkz-api.inc`](scripting/include/fkz-api.inc) (it pulls in `sm-ext-json`):
+Include [`include/fkz-api.inc`](scripting/include/fkz-api.inc)
