@@ -27,7 +27,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.1.1"
+#define PLUGIN_VERSION "2.1.2"
 #define MODE_NAME_LEN  32
 
 public Plugin myinfo =
