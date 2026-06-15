@@ -189,7 +189,7 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
 void PrintCrossChat(const char[] alias, const char[] name, const char[] message)
 {
     char line[640];
-    FormatEx(line, sizeof(line), " \x04[%s]\x01 %s\x01: %s", alias, name, message);
+    FormatEx(line, sizeof(line), " \x0E[%s]\x01 %s\x01: %s", alias, name, message);
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -220,9 +220,9 @@ public Action Cmd_CrossChat(int client, int args)
 
     g_crossChatMuted[client] = !g_crossChatMuted[client];
     if (g_crossChatMuted[client])
-        PrintToChat(client, " \x04[CrossChat]\x01 Cross-server messages \x02hidden\x01. Type !crosschat to show.");
+        PrintToChat(client, " \x0EFKZ\x08|\x01 Cross-server messages \x02hidden\x01. Type !crosschat to show.");
     else
-        PrintToChat(client, " \x04[CrossChat]\x01 Cross-server messages \x04shown\x01.");
+        PrintToChat(client, " \x0EFKZ\x08|\x01 Cross-server messages \x04shown\x01.");
 
     return Plugin_Handled;
 }
