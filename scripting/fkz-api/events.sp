@@ -54,6 +54,8 @@ public void OnClientPutInServer(int client)
     g_crossChatMuted[client] = false;
     ResetGokzData(client);
     InitModePlaytime(client);
+
+    StartChatStream();
 }
 
 public void OnClientDisconnect(int client)

@@ -18,7 +18,23 @@
 void SetupCrossChat()
 {
     RegConsoleCmd("sm_crosschat", Cmd_CrossChat, "Toggle cross-server chat messages");
-    StartChatStream();
+
+    // Only open the stream if someone's here.
+    // An empty/hibernating server holds no connection.
+    if (HasHumanPlayers())
+        StartChatStream();
+}
+
+// True if at least one non-bot player is in game.
+// Gates the long-poll so an empty server neither holds a connection nor re-handshakes.
+bool HasHumanPlayers()
+{
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+            return true;
+    }
+    return false;
 }
 
 // Resolve this server's public endpoint the same way the status report does.
@@ -164,8 +180,10 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
         }
     }
 
-    // Re-open the poll immediately for the next message.
-    StartChatStream();
+    // Re-open the poll for the next message, but only while players are here.
+    // When the last player leaves, this in-flight poll is the last one.
+    if (HasHumanPlayers())
+        StartChatStream();
 }
 
 void PrintCrossChat(const char[] alias, const char[] name, const char[] message)
@@ -190,7 +208,8 @@ void ScheduleChatRetry()
 public Action Timer_ChatRetry(Handle timer, any data)
 {
     g_chatRetryTimer = INVALID_HANDLE;
-    StartChatStream();
+    if (HasHumanPlayers())
+        StartChatStream();
     return Plugin_Stop;
 }
 
