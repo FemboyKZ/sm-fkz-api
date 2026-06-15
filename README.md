@@ -1,7 +1,7 @@
 
 # FKZ API SM Plugin
 
-Exposes API endpoint calls as natives and tracks player's/server's realtime status.
+Exposes API endpoint calls as natives, tracks player's/server's realtime status and tracks messages for crosschat.
 
 This is requires you to have an [FKZ API](https://github.com/FemboyKZ/api) instance.
 
