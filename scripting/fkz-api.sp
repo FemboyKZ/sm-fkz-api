@@ -16,6 +16,7 @@
  */
 
 #include <sourcemod>
+#include <clientprefs>
 #include <json>
 #include <websocket>
 #include <gokz/core>
@@ -27,7 +28,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.3.2"
+#define PLUGIN_VERSION "2.3.3"
 #define MODE_NAME_LEN  32
 
 #define FKZ_API_LIBRARY

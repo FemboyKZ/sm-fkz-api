@@ -46,6 +46,7 @@ int       g_chatCursor = -1;     // last relay id seen (-1 = needs handshake)
 bool      g_chatStreamActive;    // a long-poll request is in flight
 Handle    g_chatRetryTimer = INVALID_HANDLE;
 bool      g_crossChatMuted[MAXPLAYERS + 1];
+Cookie    g_crossChatCookie;    // persists the per-player mute toggle
 
 char      g_cachedHostname[256];
 char      g_cachedVersion[256];

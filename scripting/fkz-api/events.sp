@@ -50,12 +50,17 @@ public void OnClientPutInServer(int client)
     if (IsFakeClient(client))
         return;
 
-    g_connectTime[client]    = GetGameTime();
-    g_crossChatMuted[client] = false;
+    g_connectTime[client] = GetGameTime();
     ResetGokzData(client);
     InitModePlaytime(client);
 
     StartChatStream();
+}
+
+public void OnClientCookiesCached(int client)
+{
+    if (!IsFakeClient(client))
+        LoadCrossChatPref(client);
 }
 
 public void OnClientDisconnect(int client)
@@ -75,7 +80,8 @@ public void OnClientDisconnect(int client)
             SendHibernate();
     }
 
-    g_connectTime[client] = 0.0;
+    g_connectTime[client]    = 0.0;
+    g_crossChatMuted[client] = false;
     ResetGokzData(client);
     ResetModePlaytimeDeltas(client);
     g_lastModeSample[client] = 0.0;

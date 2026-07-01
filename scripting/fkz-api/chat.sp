@@ -18,11 +18,27 @@
 void SetupCrossChat()
 {
     RegConsoleCmd("sm_crosschat", Cmd_CrossChat, "Toggle cross-server chat messages");
+    g_crossChatCookie = new Cookie("fkz_crosschat_muted", "Hide FKZ cross-server chat", CookieAccess_Protected);
+
+    // Cookies for players already connected won't fire OnClientCookiesCached, load them now.
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i) && AreClientCookiesCached(i))
+            LoadCrossChatPref(i);
+    }
 
     // Only open the stream if someone's here.
     // An empty/hibernating server holds no connection.
     if (HasHumanPlayers())
         StartChatStream();
+}
+
+// Read the stored mute toggle into g_crossChatMuted. Empty cookie means not muted.
+void LoadCrossChatPref(int client)
+{
+    char value[8];
+    g_crossChatCookie.Get(client, value, sizeof(value));
+    g_crossChatMuted[client] = (value[0] == '1');
 }
 
 // True if at least one non-bot player is in game.
@@ -219,6 +235,9 @@ public Action Cmd_CrossChat(int client, int args)
         return Plugin_Handled;
 
     g_crossChatMuted[client] = !g_crossChatMuted[client];
+    if (AreClientCookiesCached(client))
+        g_crossChatCookie.Set(client, g_crossChatMuted[client] ? "1" : "0");
+
     if (g_crossChatMuted[client])
         PrintToChat(client, " \x0EFKZ\x08|\x01 Cross-server messages \x02hidden\x01. Type !crosschat to show.");
     else
