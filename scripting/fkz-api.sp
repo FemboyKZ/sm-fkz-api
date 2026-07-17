@@ -28,7 +28,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.3.3"
+#define PLUGIN_VERSION "2.3.4"
 #define MODE_NAME_LEN  32
 
 #define FKZ_API_LIBRARY

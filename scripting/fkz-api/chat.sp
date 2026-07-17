@@ -113,6 +113,7 @@ void SendChatMessage(int client, const char[] message)
         body.SetString("steamid", steamid);
     body.SetString("name", name);
     body.SetString("message", message);
+    body.SetBool("muted", g_crossChatMuted[client]);
 
     FKZ_SendRequest("POST", "/chat/messages", view_as<JSON>(body), OnChatPostResponse, 0);
     delete body;
@@ -189,8 +190,10 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
                 doc.PtrGetString(path, name, sizeof(name));
                 FormatEx(path, sizeof(path), "/messages/%d/message", i);
                 doc.PtrGetString(path, message, sizeof(message));
+                FormatEx(path, sizeof(path), "/messages/%d/muted", i);
+                bool muted = doc.PtrGetBool(path);
 
-                PrintCrossChat(alias, name, message);
+                PrintCrossChat(alias, name, message, muted);
             }
             delete doc;
         }
@@ -202,10 +205,14 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
         StartChatStream();
 }
 
-void PrintCrossChat(const char[] alias, const char[] name, const char[] message)
+void PrintCrossChat(const char[] alias, const char[] name, const char[] message, bool muted)
 {
+    // A muted sender has cross-chat hidden, so tag their name to warn everyone else that replies won't reach them.
     char line[768];
-    FormatEx(line, sizeof(line), " \x0E[%s]\x01 %s\x01: %s", alias, name, message);
+    if (muted)
+        FormatEx(line, sizeof(line), " \x0E[%s]\x01 %s \x02(muted)\x01: %s", alias, name, message);
+    else
+        FormatEx(line, sizeof(line), " \x0E[%s]\x01 %s\x01: %s", alias, name, message);
 
     for (int i = 1; i <= MaxClients; i++)
     {
