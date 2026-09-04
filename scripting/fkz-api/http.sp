@@ -1,7 +1,7 @@
 /**
  * FKZ API - HTTP transport
  *
- * The low-level request client: 
+ * The low-level request client:
  * builds a request against the configured API root (api_url), applies TLS/auth, and dispatches it by method.
  * Shared by the public natives and the status updater.
  */
@@ -29,7 +29,7 @@ bool FKZ_SendRequest(const char[] method, const char[] path, JSON body, Response
              g_apiUrl, (path[0] == '/') ? "" : "/", path);
 
     HttpRequest req    = new HttpRequest(url);
-    req.Timeout        = 10000;
+    req.Timeout        = 10;    // seconds, not ms: the extension maps this to ixwebsocket's connectTimeout
     req.FollowRedirect = false;
 
     if (g_tlsCAFile[0] != '\0')
