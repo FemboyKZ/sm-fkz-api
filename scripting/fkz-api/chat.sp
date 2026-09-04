@@ -12,8 +12,11 @@
  * Players can hide the relay for themselves with !crosschat.
  */
 
-#define CHAT_STREAM_TIMEOUT 30000    // ms; must exceed the API's ~25s park time
-#define CHAT_RETRY_DELAY    3.0      // s; backoff after a transport/HTTP error
+#define CHAT_STREAM_CONNECT_TIMEOUT 30      // s; connect phase only
+#define CHAT_STREAM_DEADLINE        35.0    // s; > the API's ~25s park time
+#define CHAT_WATCHDOG_INTERVAL      5.0     // s; how often the deadline is checked
+#define CHAT_RETRY_DELAY            3.0     // s; backoff after a transport/HTTP error
+#define CHAT_MAX_PARSE_FAILURES     3       // unreadable replies tolerated before resyncing
 
 void SetupCrossChat()
 {
@@ -26,6 +29,8 @@ void SetupCrossChat()
         if (IsClientInGame(i) && !IsFakeClient(i) && AreClientCookiesCached(i))
             LoadCrossChatPref(i);
     }
+
+    CreateTimer(CHAT_WATCHDOG_INTERVAL, Timer_ChatWatchdog, _, TIMER_REPEAT);
 
     // Only open the stream if someone's here.
     // An empty/hibernating server holds no connection.
@@ -139,7 +144,7 @@ void StartChatStream()
              g_apiUrl, g_chatCursor, ip, port);
 
     HttpRequest req    = new HttpRequest(url);
-    req.Timeout        = CHAT_STREAM_TIMEOUT;
+    req.Timeout        = CHAT_STREAM_CONNECT_TIMEOUT;
     req.FollowRedirect = false;
 
     if (g_tlsCAFile[0] != '\0')
@@ -147,9 +152,12 @@ void StartChatStream()
     if (g_apiKey[0] != '\0')
         req.SetBearerAuth(g_apiKey);
 
-    if (req.Get(OnChatStream))
+    g_chatStreamGen++;
+
+    if (req.Get(OnChatStream, g_chatStreamGen))
     {
         g_chatStreamActive = true;
+        g_chatStreamStart  = GetEngineTime();
     }
     else
     {
@@ -160,6 +168,10 @@ void StartChatStream()
 
 void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodySize, any value)
 {
+    // A poll the watchdog already replaced; its successor owns the stream state now.
+    if (value != g_chatStreamGen)
+        return;
+
     g_chatStreamActive = false;
 
     if (statusCode != 200)
@@ -172,37 +184,65 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
     if (body[0] != '\0')
     {
         JSON doc = view_as<JSON>(JSON.Parse(body));
-        if (doc != null)
+        if (doc == null)
         {
-            // Trust the server's cursor (only one poll is in flight at a time, so replies arrive in order).
-            // Adopting it unconditionally lets us recover if the API restarted and reset its cursor below ours.
-            g_chatCursor = doc.PtrGetInt("/cursor");
-
-            int count    = doc.PtrGetLength("/messages");
-            for (int i = 0; i < count; i++)
+            // The cursor only advances on a reply we could read, so an unreadable one comes straight back on the next poll.
+            g_chatParseFailures++;
+            if (g_chatParseFailures >= CHAT_MAX_PARSE_FAILURES)
             {
-                char path[64];
-                char alias[64], name[128], message[512];
-
-                FormatEx(path, sizeof(path), "/messages/%d/alias", i);
-                doc.PtrGetString(path, alias, sizeof(alias));
-                FormatEx(path, sizeof(path), "/messages/%d/name", i);
-                doc.PtrGetString(path, name, sizeof(name));
-                FormatEx(path, sizeof(path), "/messages/%d/message", i);
-                doc.PtrGetString(path, message, sizeof(message));
-                FormatEx(path, sizeof(path), "/messages/%d/muted", i);
-                bool muted = doc.PtrGetBool(path);
-
-                PrintCrossChat(alias, name, message, muted);
+                LogError("[FKZ] chat stream unreadable %d times, resyncing cursor", g_chatParseFailures);
+                g_chatParseFailures = 0;
+                g_chatCursor        = -1;    // handshake past the backlog we cannot parse
             }
-            delete doc;
+            ScheduleChatRetry();
+            return;
         }
+
+        g_chatParseFailures = 0;
+
+        // Trust the server's cursor (only one poll is in flight at a time, so replies arrive in order).
+        // Adopting it unconditionally lets us recover if the API restarted and reset its cursor below ours.
+        // Keep the old cursor if the field is missing, otherwise we'd fall back to 0 and replay the backlog.
+        int cursor;
+        if (doc.PtrTryGetInt("/cursor", cursor))
+            g_chatCursor = cursor;
+
+        int count = doc.PtrGetLength("/messages");
+        for (int i = 0; i < count; i++)
+        {
+            char path[64];
+            char alias[64], name[128], message[512];
+
+            FormatEx(path, sizeof(path), "/messages/%d/alias", i);
+            doc.PtrGetString(path, alias, sizeof(alias));
+            FormatEx(path, sizeof(path), "/messages/%d/name", i);
+            doc.PtrGetString(path, name, sizeof(name));
+            FormatEx(path, sizeof(path), "/messages/%d/message", i);
+            doc.PtrGetString(path, message, sizeof(message));
+            FormatEx(path, sizeof(path), "/messages/%d/muted", i);
+            bool muted = doc.PtrGetBool(path);
+
+            PrintCrossChat(alias, name, message, muted);
+        }
+        delete doc;
     }
 
     // Re-open the poll for the next message, but only while players are here.
     // When the last player leaves, this in-flight poll is the last one.
     if (HasHumanPlayers())
         StartChatStream();
+}
+
+public Action Timer_ChatWatchdog(Handle timer, any data)
+{
+    if (g_chatStreamActive && GetEngineTime() - g_chatStreamStart > CHAT_STREAM_DEADLINE)
+    {
+        LogError("[FKZ] chat stream stalled past %.0fs, reopening", CHAT_STREAM_DEADLINE);
+        g_chatStreamActive = false;    // StartChatStream bumps the generation, orphaning the old callback
+        if (HasHumanPlayers())
+            StartChatStream();
+    }
+    return Plugin_Continue;
 }
 
 void PrintCrossChat(const char[] alias, const char[] name, const char[] message, bool muted)

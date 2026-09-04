@@ -42,8 +42,11 @@ char      g_osName[16];
 int       g_successCount;
 
 // Cross-server chat relay
-int       g_chatCursor = -1;     // last relay id seen (-1 = needs handshake)
-bool      g_chatStreamActive;    // a long-poll request is in flight
+int       g_chatCursor = -1;      // last relay id seen (-1 = needs handshake)
+bool      g_chatStreamActive;     // a long-poll request is in flight
+int       g_chatStreamGen;        // bumped per poll; orphans callbacks the watchdog gave up on
+float     g_chatStreamStart;      // engine time the in-flight poll was opened
+int       g_chatParseFailures;    // consecutive replies we could not read
 Handle    g_chatRetryTimer = INVALID_HANDLE;
 bool      g_crossChatMuted[MAXPLAYERS + 1];
 Cookie    g_crossChatCookie;    // persists the per-player mute toggle
