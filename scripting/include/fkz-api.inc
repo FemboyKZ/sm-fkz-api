@@ -52,7 +52,7 @@ typedef FKZ_ResponseCallback = function void(bool success, int statusCode, JSON 
  * Sends an arbitrary request to any FKZ API endpoint.
  *
  * @param method    HTTP verb: GET, POST, PUT, PATCH or DELETE (case-insensitive).
- * @param path      Endpoint path, e.g. "/kzglobal/records?limit=10".
+ * @param path      Endpoint path, e.g. "/global/records?limit=10".
  *                  Leading slash optional.
  * @param body      JSON body for POST/PUT/PATCH, or null.
  *                  Not freed by the native - the caller may delete it once this returns.
@@ -122,112 +122,112 @@ native bool  FKZ_GetMap(const char[] mapname, FKZ_ResponseCallback callback, any
 // KZ Global - records
 // ---------------------------------------------------------------------------
 
-/** GET /kzglobal/records  (limit/offset/sort) */
+/** GET /global/records  (limit/offset/sort) */
 native bool  FKZ_GetKzRecords(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/records/recent  (limit/offset/sort) */
+/** GET /global/records/recent  (limit/offset/sort) */
 native bool  FKZ_GetKzRecentRecords(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/records/worldrecords  (limit/offset/sort) */
+/** GET /global/records/worldrecords  (limit/offset/sort) */
 native bool  FKZ_GetKzWorldRecords(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/records/leaderboard/{mapname}  (limit/offset/sort) */
+/** GET /global/records/leaderboard/{mapname}  (limit/offset/sort) */
 native bool  FKZ_GetKzLeaderboard(const char[] mapname, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/records/{id} */
+/** GET /global/records/{id} */
 native bool  FKZ_GetKzRecord(int id, FKZ_ResponseCallback callback, any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Global - players
 // ---------------------------------------------------------------------------
 
-/** GET /kzglobal/players  (limit/offset/sort) */
+/** GET /global/players  (limit/offset/sort) */
 native bool  FKZ_GetKzPlayers(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/players/{steamid} */
+/** GET /global/players/{steamid} */
 native bool  FKZ_GetKzPlayer(const char[] steamid, FKZ_ResponseCallback callback, any data = 0);
 
-/** GET /kzglobal/players/{steamid}/records  (limit/offset/sort) */
+/** GET /global/players/{steamid}/records  (limit/offset/sort) */
 native bool  FKZ_GetKzPlayerRecords(const char[] steamid, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/players/{steamid}/pbs  (limit/offset/sort) */
+/** GET /global/players/{steamid}/pbs  (limit/offset/sort) */
 native bool  FKZ_GetKzPlayerPBs(const char[] steamid, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/players/{steamid}/completions  (limit/offset/sort) */
+/** GET /global/players/{steamid}/completions  (limit/offset/sort) */
 native bool  FKZ_GetKzPlayerCompletions(const char[] steamid, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Global - maps
 // ---------------------------------------------------------------------------
 
-/** GET /kzglobal/maps  (limit/offset/sort) */
+/** GET /global/maps  (limit/offset/sort) */
 native bool  FKZ_GetKzMaps(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/maps/{mapname} */
+/** GET /global/maps/{mapname} */
 native bool  FKZ_GetKzMap(const char[] mapname, FKZ_ResponseCallback callback, any data = 0);
 
-/** GET /kzglobal/maps/{mapname}/records  (limit/offset/sort) */
+/** GET /global/maps/{mapname}/records  (limit/offset/sort) */
 native bool  FKZ_GetKzMapRecords(const char[] mapname, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/maps/{mapname}/courses  (limit/offset/sort) */
+/** GET /global/maps/{mapname}/courses  (limit/offset/sort) */
 native bool  FKZ_GetKzMapCourses(const char[] mapname, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Global - servers
 // ---------------------------------------------------------------------------
 
-/** GET /kzglobal/servers  (limit/offset/sort) */
+/** GET /global/servers  (limit/offset/sort) */
 native bool  FKZ_GetKzServers(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/servers/{id} */
+/** GET /global/servers/{id} */
 native bool  FKZ_GetKzServer(int id, FKZ_ResponseCallback callback, any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Global - bans
 // ---------------------------------------------------------------------------
 
-/** GET /kzglobal/bans  (limit/offset/sort) */
+/** GET /global/bans  (limit/offset/sort) */
 native bool  FKZ_GetKzBans(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/bans/active  (limit/offset/sort) */
+/** GET /global/bans/active  (limit/offset/sort) */
 native bool  FKZ_GetKzActiveBans(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzglobal/bans/{id} */
+/** GET /global/bans/{id} */
 native bool  FKZ_GetKzBan(int id, FKZ_ResponseCallback callback, any data = 0);
 
-/** GET /kzglobal/bans/player/{steamid}  (limit/offset/sort) */
+/** GET /global/bans/player/{steamid}  (limit/offset/sort) */
 native bool  FKZ_GetKzPlayerBans(const char[] steamid, FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Local (CS:GO 128/64 tick)
 // ---------------------------------------------------------------------------
 
-/** GET /kzlocal/maps  (limit/offset/sort) */
+/** GET /local/gokz/maps  (limit/offset/sort) */
 native bool  FKZ_GetLocalMaps(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzlocal/maps/{mapname} */
+/** GET /local/gokz/maps/{mapname} */
 native bool  FKZ_GetLocalMap(const char[] mapname, FKZ_ResponseCallback callback, any data = 0);
 
-/** GET /kzlocal/records  (limit/offset/sort) */
+/** GET /local/gokz/records  (limit/offset/sort) */
 native bool  FKZ_GetLocalRecords(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzlocal/players  (limit/offset/sort) */
+/** GET /local/gokz/players  (limit/offset/sort) */
 native bool  FKZ_GetLocalPlayers(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
 // ---------------------------------------------------------------------------
 // KZ Local CS2
 // ---------------------------------------------------------------------------
 
-/** GET /kzlocal-cs2/maps  (limit/offset/sort) */
+/** GET /local/cs2kz/maps  (limit/offset/sort) */
 native bool  FKZ_GetLocalCS2Maps(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzlocal-cs2/records  (limit/offset/sort) */
+/** GET /local/cs2kz/records  (limit/offset/sort) */
 native bool  FKZ_GetLocalCS2Records(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzlocal-cs2/players  (limit/offset/sort) */
+/** GET /local/cs2kz/players  (limit/offset/sort) */
 native bool  FKZ_GetLocalCS2Players(FKZ_ResponseCallback callback, int limit = 0, int offset = 0, const char[] sort = "", any data = 0);
 
-/** GET /kzlocal-cs2/stats */
+/** GET /local/cs2kz/stats */
 native bool  FKZ_GetLocalCS2Stats(FKZ_ResponseCallback callback, any data = 0);
 
 // ---------------------------------------------------------------------------

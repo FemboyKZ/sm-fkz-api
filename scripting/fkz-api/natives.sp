@@ -297,17 +297,17 @@ public int Native_GetMap(Handle plugin, int numParams)
 // KZ Global - records
 public int Native_GetKzRecords(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/records", 1);
+    return CollectionRequest(plugin, "/global/records", 1);
 }
 
 public int Native_GetKzRecentRecords(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/records/recent", 1);
+    return CollectionRequest(plugin, "/global/records/recent", 1);
 }
 
 public int Native_GetKzWorldRecords(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/records/worldrecords", 1);
+    return CollectionRequest(plugin, "/global/records/worldrecords", 1);
 }
 
 public int Native_GetKzLeaderboard(Handle plugin, int numParams)
@@ -315,7 +315,7 @@ public int Native_GetKzLeaderboard(Handle plugin, int numParams)
     char mapname[128];
     GetNativeString(1, mapname, sizeof(mapname));
     char path[192];
-    FormatEx(path, sizeof(path), "/kzglobal/records/leaderboard/%s", mapname);
+    FormatEx(path, sizeof(path), "/global/records/leaderboard/%s", mapname);
     return CollectionRequest(plugin, path, 2);
 }
 
@@ -323,14 +323,14 @@ public int Native_GetKzRecord(Handle plugin, int numParams)
 {
     int  id = GetNativeCell(1);
     char path[96];
-    FormatEx(path, sizeof(path), "/kzglobal/records/%d", id);
+    FormatEx(path, sizeof(path), "/global/records/%d", id);
     return GetRequest(plugin, path, 2, 3);
 }
 
 // KZ Global - players
 public int Native_GetKzPlayers(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/players", 1);
+    return CollectionRequest(plugin, "/global/players", 1);
 }
 
 public int Native_GetKzPlayer(Handle plugin, int numParams)
@@ -338,7 +338,7 @@ public int Native_GetKzPlayer(Handle plugin, int numParams)
     char steamid[32];
     GetNativeString(1, steamid, sizeof(steamid));
     char path[96];
-    FormatEx(path, sizeof(path), "/kzglobal/players/%s", steamid);
+    FormatEx(path, sizeof(path), "/global/players/%s", steamid);
     return GetRequest(plugin, path, 2, 3);
 }
 
@@ -347,7 +347,7 @@ public int Native_GetKzPlayerRecords(Handle plugin, int numParams)
     char steamid[32];
     GetNativeString(1, steamid, sizeof(steamid));
     char path[128];
-    FormatEx(path, sizeof(path), "/kzglobal/players/%s/records", steamid);
+    FormatEx(path, sizeof(path), "/global/players/%s/records", steamid);
     return CollectionRequest(plugin, path, 2);
 }
 
@@ -356,7 +356,7 @@ public int Native_GetKzPlayerPBs(Handle plugin, int numParams)
     char steamid[32];
     GetNativeString(1, steamid, sizeof(steamid));
     char path[128];
-    FormatEx(path, sizeof(path), "/kzglobal/players/%s/pbs", steamid);
+    FormatEx(path, sizeof(path), "/global/players/%s/pbs", steamid);
     return CollectionRequest(plugin, path, 2);
 }
 
@@ -365,14 +365,14 @@ public int Native_GetKzPlayerCompletions(Handle plugin, int numParams)
     char steamid[32];
     GetNativeString(1, steamid, sizeof(steamid));
     char path[128];
-    FormatEx(path, sizeof(path), "/kzglobal/players/%s/completions", steamid);
+    FormatEx(path, sizeof(path), "/global/players/%s/completions", steamid);
     return CollectionRequest(plugin, path, 2);
 }
 
 // KZ Global - maps
 public int Native_GetKzMaps(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/maps", 1);
+    return CollectionRequest(plugin, "/global/maps", 1);
 }
 
 public int Native_GetKzMap(Handle plugin, int numParams)
@@ -380,7 +380,7 @@ public int Native_GetKzMap(Handle plugin, int numParams)
     char mapname[128];
     GetNativeString(1, mapname, sizeof(mapname));
     char path[192];
-    FormatEx(path, sizeof(path), "/kzglobal/maps/%s", mapname);
+    FormatEx(path, sizeof(path), "/global/maps/%s", mapname);
     return GetRequest(plugin, path, 2, 3);
 }
 
@@ -389,7 +389,7 @@ public int Native_GetKzMapRecords(Handle plugin, int numParams)
     char mapname[128];
     GetNativeString(1, mapname, sizeof(mapname));
     char path[192];
-    FormatEx(path, sizeof(path), "/kzglobal/maps/%s/records", mapname);
+    FormatEx(path, sizeof(path), "/global/maps/%s/records", mapname);
     return CollectionRequest(plugin, path, 2);
 }
 
@@ -398,40 +398,40 @@ public int Native_GetKzMapCourses(Handle plugin, int numParams)
     char mapname[128];
     GetNativeString(1, mapname, sizeof(mapname));
     char path[192];
-    FormatEx(path, sizeof(path), "/kzglobal/maps/%s/courses", mapname);
+    FormatEx(path, sizeof(path), "/global/maps/%s/courses", mapname);
     return CollectionRequest(plugin, path, 2);
 }
 
 // KZ Global - servers
 public int Native_GetKzServers(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/servers", 1);
+    return CollectionRequest(plugin, "/global/servers", 1);
 }
 
 public int Native_GetKzServer(Handle plugin, int numParams)
 {
     int  id = GetNativeCell(1);
     char path[96];
-    FormatEx(path, sizeof(path), "/kzglobal/servers/%d", id);
+    FormatEx(path, sizeof(path), "/global/servers/%d", id);
     return GetRequest(plugin, path, 2, 3);
 }
 
 // KZ Global - bans
 public int Native_GetKzBans(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/bans", 1);
+    return CollectionRequest(plugin, "/global/bans", 1);
 }
 
 public int Native_GetKzActiveBans(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzglobal/bans/active", 1);
+    return CollectionRequest(plugin, "/global/bans/active", 1);
 }
 
 public int Native_GetKzBan(Handle plugin, int numParams)
 {
     int  id = GetNativeCell(1);
     char path[96];
-    FormatEx(path, sizeof(path), "/kzglobal/bans/%d", id);
+    FormatEx(path, sizeof(path), "/global/bans/%d", id);
     return GetRequest(plugin, path, 2, 3);
 }
 
@@ -440,14 +440,14 @@ public int Native_GetKzPlayerBans(Handle plugin, int numParams)
     char steamid[32];
     GetNativeString(1, steamid, sizeof(steamid));
     char path[96];
-    FormatEx(path, sizeof(path), "/kzglobal/bans/player/%s", steamid);
+    FormatEx(path, sizeof(path), "/global/bans/player/%s", steamid);
     return CollectionRequest(plugin, path, 2);
 }
 
 // KZ Local (CS:GO 128/64 tick)
 public int Native_GetLocalMaps(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal/maps", 1);
+    return CollectionRequest(plugin, "/local/gokz/maps", 1);
 }
 
 public int Native_GetLocalMap(Handle plugin, int numParams)
@@ -455,37 +455,37 @@ public int Native_GetLocalMap(Handle plugin, int numParams)
     char mapname[128];
     GetNativeString(1, mapname, sizeof(mapname));
     char path[160];
-    FormatEx(path, sizeof(path), "/kzlocal/maps/%s", mapname);
+    FormatEx(path, sizeof(path), "/local/gokz/maps/%s", mapname);
     return GetRequest(plugin, path, 2, 3);
 }
 
 public int Native_GetLocalRecords(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal/records", 1);
+    return CollectionRequest(plugin, "/local/gokz/records", 1);
 }
 
 public int Native_GetLocalPlayers(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal/players", 1);
+    return CollectionRequest(plugin, "/local/gokz/players", 1);
 }
 
 // KZ Local CS2
 public int Native_GetLocalCS2Maps(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal-cs2/maps", 1);
+    return CollectionRequest(plugin, "/local/cs2kz/maps", 1);
 }
 
 public int Native_GetLocalCS2Records(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal-cs2/records", 1);
+    return CollectionRequest(plugin, "/local/cs2kz/records", 1);
 }
 
 public int Native_GetLocalCS2Players(Handle plugin, int numParams)
 {
-    return CollectionRequest(plugin, "/kzlocal-cs2/players", 1);
+    return CollectionRequest(plugin, "/local/cs2kz/players", 1);
 }
 
 public int Native_GetLocalCS2Stats(Handle plugin, int numParams)
 {
-    return GetRequest(plugin, "/kzlocal-cs2/stats", 1, 2);
+    return GetRequest(plugin, "/local/cs2kz/stats", 1, 2);
 }
