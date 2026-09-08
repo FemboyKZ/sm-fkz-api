@@ -27,6 +27,7 @@
 
 #pragma semicolon 1
 #pragma newdecls required
+#pragma dynamic 32768
 
 #define PLUGIN_VERSION "2.3.6"
 #define MODE_NAME_LEN  32
