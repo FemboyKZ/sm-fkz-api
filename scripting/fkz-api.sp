@@ -29,7 +29,7 @@
 #pragma newdecls required
 #pragma dynamic 32768
 
-#define PLUGIN_VERSION "2.3.6"
+#define PLUGIN_VERSION "2.3.7"
 #define MODE_NAME_LEN  32
 
 #define FKZ_API_LIBRARY
