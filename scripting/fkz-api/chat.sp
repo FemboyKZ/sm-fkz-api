@@ -211,7 +211,7 @@ void OnChatStream(HttpRequest http, const char[] body, int statusCode, int bodyS
         for (int i = 0; i < count; i++)
         {
             char path[64];
-            char alias[64], name[128], message[512];
+            char alias[64], name[128], message[544];    // API caps a message at 512 bytes; +NUL and slack
 
             FormatEx(path, sizeof(path), "/messages/%d/alias", i);
             doc.PtrGetString(path, alias, sizeof(alias));
