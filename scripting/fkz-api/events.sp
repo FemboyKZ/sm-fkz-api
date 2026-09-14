@@ -87,12 +87,11 @@ public void OnClientDisconnect(int client)
     g_lastModeSample[client] = 0.0;
 }
 
-public int SteamWorks_SteamServersConnected()
+public void SteamWorks_SteamServersConnected()
 {
     g_cachedSecureAvailable = true;
     g_cachedSecure          = SteamWorks_IsVACEnabled();
     LogMessage("[FKZ] Steam connected, VAC status: %s", g_cachedSecure ? "secure" : "insecure");
-    return 0;
 }
 
 public void GOKZ_OnTimerStart_Post(int client, int course)
